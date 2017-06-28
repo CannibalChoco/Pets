@@ -3,13 +3,14 @@ package com.example.android.pets.data;
 
 import android.provider.BaseColumns;
 
-// Class can not be extended
+// Class holds only constants, so we won't need to extend it
 public final class PetContract {
+
+    private PetContract(){}
 
     public static abstract class PetEntry implements BaseColumns {
 
         public static final String TABLE_NAME = "pets";
-
         public static final String _ID = BaseColumns._ID;
         public static final String COLUMN_PET_NAME= "name";
         public static final String COLUMN_PET_BREED = "breed";
