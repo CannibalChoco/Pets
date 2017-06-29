@@ -15,6 +15,8 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -26,10 +28,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetContract.PetEntry;
+import com.example.android.pets.data.PetDbHelper;
 
+import static android.R.attr.duration;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_FEMALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
@@ -40,22 +45,23 @@ import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
 public class EditorActivity extends AppCompatActivity {
 
     /** EditText field to enter the pet's name */
-    private EditText mNameEditText;
+    private EditText nameEditText;
 
     /** EditText field to enter the pet's breed */
-    private EditText mBreedEditText;
+    private EditText breedEditText;
 
     /** EditText field to enter the pet's weight */
-    private EditText mWeightEditText;
+    private EditText weightEditText;
 
     /** EditText field to enter the pet's gender */
-    private Spinner mGenderSpinner;
+    private Spinner genderSpinner;
 
     /**
      * Gender of the pet. The possible values are:
      * 0 for unknown gender, 1 for male, 2 for female.
      */
-    private int mGender = 0;
+    private int gender = 0;
+    private long newRowId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +69,41 @@ public class EditorActivity extends AppCompatActivity {
         setContentView(R.layout.activity_editor);
 
         // Find all relevant views that we will need to read user input from
-        mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
-        mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
-        mWeightEditText = (EditText) findViewById(R.id.edit_pet_weight);
-        mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
+        nameEditText = (EditText) findViewById(R.id.edit_pet_name);
+        breedEditText = (EditText) findViewById(R.id.edit_pet_breed);
+        weightEditText = (EditText) findViewById(R.id.edit_pet_weight);
+        genderSpinner = (Spinner) findViewById(R.id.spinner_gender);
 
         setupSpinner();
     }
+
+    /**
+     * Get user input from editor and save the data
+     */
+    private void insertPet(){
+        String nameString = nameEditText.getText().toString().trim();
+        String breedString = breedEditText.getText().toString().trim();
+        String weightString = weightEditText.getText().toString().trim();
+        int weight = Integer.parseInt(weightString);
+
+        PetDbHelper dbHelper = new PetDbHelper(this);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(PetEntry.COLUMN_PET_NAME, nameString);
+        values.put(PetEntry.COLUMN_PET_BREED, breedString);
+        values.put(PetEntry.COLUMN_PET_GENDER, gender);
+        values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
+
+        newRowId = db.insert(PetEntry.TABLE_NAME, null, values);
+
+        if (newRowId != -1){
+            Toast.makeText(this, "Pet saved with row ID: " + newRowId, Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(this, "Error with saving pet data", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     /**
      * Setup the dropdown spinner that allows the user to select the gender of the pet.
@@ -84,20 +118,20 @@ public class EditorActivity extends AppCompatActivity {
         genderSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
 
         // Apply the adapter to the spinner
-        mGenderSpinner.setAdapter(genderSpinnerAdapter);
+        genderSpinner.setAdapter(genderSpinnerAdapter);
 
         // Set the integer mSelected to the constant values
-        mGenderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        genderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
                     if (selection.equals(getString(R.string.gender_male))) {
-                        mGender = GENDER_MALE; // Male
+                        gender = GENDER_MALE; // Male
                     } else if (selection.equals(getString(R.string.gender_female))) {
-                        mGender = GENDER_FEMALE; // Female
+                        gender = GENDER_FEMALE; // Female
                     } else {
-                        mGender = GENDER_UNKNOWN; // Unknown
+                        gender = GENDER_UNKNOWN; // Unknown
                     }
                 }
             }
@@ -105,7 +139,7 @@ public class EditorActivity extends AppCompatActivity {
             // Because AdapterView is an abstract class, onNothingSelected must be defined
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                mGender = 0; // Unknown
+                gender = 0; // Unknown
             }
         });
     }
@@ -124,7 +158,9 @@ public class EditorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                // Do nothing for now
+                insertPet();
+                // Exit activity
+                finish();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
