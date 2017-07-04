@@ -21,6 +21,7 @@ import com.example.android.pets.data.PetDbHelper;
  */
 public class CatalogActivity extends AppCompatActivity {
 
+    /* db helper object*/
     private PetDbHelper dbHelper;
 
     @Override
@@ -70,6 +71,7 @@ public class CatalogActivity extends AppCompatActivity {
                 null,
                 null,
                 null);
+
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
@@ -104,7 +106,7 @@ public class CatalogActivity extends AppCompatActivity {
         }
     }
 
-    private void insertPet (){
+    private void insertDummyData (){
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -133,7 +135,7 @@ public class CatalogActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
-                insertPet();
+                insertDummyData();
                 displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option

@@ -30,11 +30,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetContract.PetEntry;
 import com.example.android.pets.data.PetDbHelper;
 
-import static android.R.attr.duration;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_FEMALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
