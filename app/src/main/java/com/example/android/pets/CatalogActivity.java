@@ -3,11 +3,12 @@ package com.example.android.pets;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -42,6 +43,7 @@ public class CatalogActivity extends AppCompatActivity {
         dbHelper = new PetDbHelper(this);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onStart(){
         super.onStart();
@@ -52,9 +54,8 @@ public class CatalogActivity extends AppCompatActivity {
      * Temporary helper method to display information in the onscreen TextView about the state of
      * the pets database.
      */
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void displayDatabaseInfo() {
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         String[] projection = {
                 PetEntry._ID,
@@ -63,14 +64,7 @@ public class CatalogActivity extends AppCompatActivity {
                 PetEntry.COLUMN_PET_GENDER,
                 PetEntry.COLUMN_PET_WEIGHT};
 
-        Cursor cursor = db.query(
-                PetEntry.TABLE_NAME,
-                projection,
-                null,
-                null,
-                null,
-                null,
-                null);
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, null, null);
 
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
@@ -107,8 +101,6 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void insertDummyData (){
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME, "Toto");
         values.put(PetEntry.COLUMN_PET_BREED, "Terrier");
@@ -116,9 +108,7 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
         // Insert the new row, returning the primary key value of the new row
-        long newRowId = db.insert(PetEntry.TABLE_NAME, null, values);
-
-        Log.i("CatalogActivity", "New row id: " + newRowId);
+        Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
     }
 
     @Override
@@ -129,6 +119,7 @@ public class CatalogActivity extends AppCompatActivity {
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // User clicked on a menu option in the app bar overflow menu

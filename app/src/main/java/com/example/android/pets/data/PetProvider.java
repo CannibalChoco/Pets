@@ -1,14 +1,36 @@
 package com.example.android.pets.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
+
+import com.example.android.pets.data.PetContract.PetEntry;
+
 
 /**
  * {@link ContentProvider} for Pets app.
  */
 public class PetProvider extends ContentProvider {
+
+    // URIMatcher code for the content URI for the pets table
+    private static final int PETS = 100;
+
+    // URIMatcher code for the content URI for a single pet in the pets table
+    private static final int PET_ID = 101;
+
+    private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+    static {
+        sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS, PETS);
+        sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS + "/#", PET_ID);
+    }
+
 
     /* db helper object*/
     private PetDbHelper dbHelper;
@@ -32,7 +54,30 @@ public class PetProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
-        return null;
+        // Get readable database
+        SQLiteDatabase database = dbHelper.getReadableDatabase();
+
+        // This cursor will hold the result of the query
+        Cursor cursor;
+
+        // Figure out if the URI matcher can match the URI to a specific code
+        int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                cursor = database.query(PetEntry.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder);
+                break;
+            case PET_ID:
+                selection = PetEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+
+                cursor = database.query(PetEntry.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder);
+                break;
+            default:
+                throw new IllegalArgumentException("Cannot query unknown URI " + uri);
+        }
+        return cursor;
     }
 
     /**
@@ -40,7 +85,35 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                return insertPet(uri, contentValues);
+            default:
+                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+        }
+    }
+
+    /**
+     * Insert a pet into the database with the given content values. Return the new content URI
+     * for that specific row in the database.
+     */
+    private Uri insertPet(Uri uri, ContentValues values) {
+        Context context = getContext();
+
+        PetDbHelper dbHelper = new PetDbHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        long id = db.insert(PetEntry.TABLE_NAME, null, values);
+
+        if (id == -1){
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+
+        // Once we know the ID of the new row in the table,
+        // return the new URI with the ID appended to the end of it
+        return ContentUris.withAppendedId(uri, id);
     }
 
     /**
@@ -66,4 +139,5 @@ public class PetProvider extends ContentProvider {
     public String getType(Uri uri) {
         return null;
     }
+
 }
