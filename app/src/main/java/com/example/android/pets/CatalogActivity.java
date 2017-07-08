@@ -63,7 +63,7 @@ public class CatalogActivity extends AppCompatActivity
         // Set up item click listener
         petListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
 
                 Uri currentPetUri = ContentUris.withAppendedId(PetEntry.CONTENT_URI, id);

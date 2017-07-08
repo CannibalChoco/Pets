@@ -63,9 +63,10 @@ public class EditorActivity extends AppCompatActivity
      * Gender of the pet. The possible values are:
      * 0 for unknown gender, 1 for male, 2 for female.
      */
-    private int gender = 0;
+    private int gender = PetEntry.GENDER_UNKNOWN;
 
-    private int PET_DB_LOADER = 2;
+    /** Identifier for the pet data loader */
+    private static final int EXISTING_PET_LOADER = 0;
 
     /** Content URI for the existing pet (null if it's a new pet) */
     private Uri currentPetUri;
@@ -81,6 +82,8 @@ public class EditorActivity extends AppCompatActivity
             setTitle(getString(R.string.editor_activity_title_new_pet));
         }else{
             setTitle(getString(R.string.editor_activity_title_edit_pet));
+
+            getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
         }
 
         // Find all relevant views that we will need to read user input from
@@ -88,8 +91,6 @@ public class EditorActivity extends AppCompatActivity
         breedEditText = (EditText) findViewById(R.id.edit_pet_breed);
         weightEditText = (EditText) findViewById(R.id.edit_pet_weight);
         genderSpinner = (Spinner) findViewById(R.id.spinner_gender);
-
-        getLoaderManager().initLoader(PET_DB_LOADER, null, this);
 
         setupSpinner();
     }
@@ -109,9 +110,8 @@ public class EditorActivity extends AppCompatActivity
         values.put(PetEntry.COLUMN_PET_GENDER, gender);
         values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
 
-        Uri uri;
         if (currentPetUri == null) {
-            uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+            Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
             // Show a toast message depending on whether or not the insertion was successful
             if (uri == null) {
@@ -124,7 +124,10 @@ public class EditorActivity extends AppCompatActivity
         }else{
             int petUpdated = getContentResolver().update(currentPetUri, values, null, null);
 
-            if (petUpdated > 0){
+            if (petUpdated == 0){
+                Toast.makeText(this, getString(R.string.message_pet_update_failed),
+                        Toast.LENGTH_SHORT).show();
+            }else{
                 Toast.makeText(this, getString(R.string.message_pet_updated),
                         Toast.LENGTH_SHORT).show();
             }
@@ -218,6 +221,11 @@ public class EditorActivity extends AppCompatActivity
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        // Bail early if the cursor is null or there is less than 1 row in the cursor
+        if (data == null || data.getCount() < 1) {
+            return;
+        }
+
         if(data.moveToFirst()) {
             int nameColIndex = data.getColumnIndex(PetEntry.COLUMN_PET_NAME);
             int breedColIndex = data.getColumnIndex(PetEntry.COLUMN_PET_BREED);
@@ -241,7 +249,7 @@ public class EditorActivity extends AppCompatActivity
     public void onLoaderReset(Loader<Cursor> loader) {
         nameEditText.setText("");
         breedEditText.setText("");
-        weightEditText.setText(null);
+        weightEditText.setText("");
         genderSpinner.setSelection(PetEntry.GENDER_UNKNOWN);
     }
 }
