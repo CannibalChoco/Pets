@@ -102,7 +102,19 @@ public class EditorActivity extends AppCompatActivity
         String nameString = nameEditText.getText().toString().trim();
         String breedString = breedEditText.getText().toString().trim();
         String weightString = weightEditText.getText().toString().trim();
-        int weight = Integer.parseInt(weightString);
+
+        // return to the CatalogActivity if there is no pet to save
+        if(currentPetUri == null &&
+                TextUtils.isEmpty(nameString) && TextUtils.isEmpty(breedString)
+                && TextUtils.isEmpty(weightString) && gender == PetEntry.GENDER_UNKNOWN){
+            finish();
+            return;
+        }
+
+        int weight = 0;
+        if (!TextUtils.isEmpty(weightString)) {
+            weight = Integer.parseInt(weightString);
+        }
 
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME, nameString);
@@ -132,7 +144,6 @@ public class EditorActivity extends AppCompatActivity
                         Toast.LENGTH_SHORT).show();
             }
         }
-
 
     }
 
