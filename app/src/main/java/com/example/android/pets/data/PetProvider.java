@@ -20,25 +20,38 @@ public class PetProvider extends ContentProvider {
 
     Context context = getContext();
 
-    // URIMatcher code for the content URI for the pets table
-    private static final int PETS = 100;
-
-    // URIMatcher code for the content URI for a single pet in the pets table
-    private static final int PET_ID = 101;
-
-    private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-
-    static {
-        sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS, PETS);
-        sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS + "/#", PET_ID);
-    }
-
-
     /* db helper object*/
     private PetDbHelper dbHelper;
 
     /** Tag for the log messages */
     public static final String LOG_TAG = PetProvider.class.getSimpleName();
+
+    /**
+     * URIMatcher code for the content URI for the pets table
+     */
+    private static final int PETS = 100;
+
+    /**
+     * URIMatcher code for the content URI for a single pet in the pets table
+     */
+    private static final int PET_ID = 101;
+
+
+    /**
+     * UriMatcher object to match a content URI to a corresponding code.
+     * The input passed into the constructor represents the code to return for the root URI.
+     * It's common to use NO_MATCH as the input for this case.
+     */
+    private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+
+    /**
+     * Static initializer. This is run the first time anything is called from this class.
+     */
+    static {
+        sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS, PETS);
+        sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS + "/#", PET_ID);
+    }
 
     /**
      * Initialize the provider and the database helper object.
@@ -51,7 +64,8 @@ public class PetProvider extends ContentProvider {
     }
 
     /**
-     * Perform the query for the given URI. Use the given projection, selection, selection arguments, and sort order.
+     * Perform the query for the given URI. Use the given projection, selection,
+     * selection arguments, and sort order.
      */
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
@@ -109,17 +123,16 @@ public class PetProvider extends ContentProvider {
 
         // Check that the gender is not null
         Integer gender = values.getAsInteger(PetEntry.COLUMN_PET_GENDER);
-        if (gender == null) {
+        if (gender == null || !PetEntry.isValidGender(gender)) {
             throw new IllegalArgumentException("Pet requires a gender");
         }
 
-        // Check that the weight is not null
+        // If the weight is provided, check that it's greater than or equal to 0 kg
         Integer weight = values.getAsInteger(PetEntry.COLUMN_PET_WEIGHT);
-        if (weight == null) {
+        if (weight != null && weight < 0) {
             throw new IllegalArgumentException("Pet requires a weight");
         }
 
-        PetDbHelper dbHelper = new PetDbHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         long id = db.insert(PetEntry.TABLE_NAME, null, values);
@@ -174,21 +187,22 @@ public class PetProvider extends ContentProvider {
         }
 
         // Check that the gender is valid
-        Integer gender = values.getAsInteger(PetEntry.COLUMN_PET_GENDER);
-        if (gender == null || !PetEntry.isValidGender(gender)) {
-            throw new IllegalArgumentException("Pet requires valid gender");
+        if (values.containsKey(PetEntry.COLUMN_PET_GENDER)) {
+            Integer gender = values.getAsInteger(PetEntry.COLUMN_PET_GENDER);
+            if (gender == null || !PetEntry.isValidGender(gender)) {
+                throw new IllegalArgumentException("Pet requires valid gender");
+            }
         }
 
         // If the {@link PetEntry#COLUMN_PET_WEIGHT} key is present,
         // check that the weight value is valid.
         if (values.containsKey(PetEntry.COLUMN_PET_WEIGHT)){
             Integer weight = values.getAsInteger(PetEntry.COLUMN_PET_WEIGHT);
-            if (weight == null) {
+            if (weight != null && weight < 0) {
                 throw new IllegalArgumentException("Pet requires valid weight");
             }
         }
 
-        PetDbHelper dbHelper = new PetDbHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         return db.update(PetEntry.TABLE_NAME, values, selection, selectionArgs);
     }
