@@ -67,9 +67,9 @@ public class EditorActivity extends AppCompatActivity {
         // get the intent data and set the activity title
         Uri uri = getIntent().getData();
         if(uri == null){
-            setTitle(getResources().getString(R.string.editor_activity_title_new_pet));
+            setTitle(getString(R.string.editor_activity_title_new_pet));
         }else{
-            setTitle(getResources().getString(R.string.editor_activity_title_edit_pet));
+            setTitle(getString(R.string.editor_activity_title_edit_pet));
         }
 
         // Find all relevant views that we will need to read user input from
