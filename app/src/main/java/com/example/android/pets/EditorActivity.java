@@ -76,7 +76,7 @@ public class EditorActivity extends AppCompatActivity
 
     private boolean petHasChanged = false;
 
-    private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
+    private View.OnTouchListener touchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
             petHasChanged = true;
@@ -106,10 +106,10 @@ public class EditorActivity extends AppCompatActivity
         weightEditText = (EditText) findViewById(R.id.edit_pet_weight);
         genderSpinner = (Spinner) findViewById(R.id.spinner_gender);
 
-        nameEditText.setOnTouchListener(mTouchListener);
-        breedEditText.setOnTouchListener(mTouchListener);
-        weightEditText.setOnTouchListener(mTouchListener);
-        genderSpinner.setOnTouchListener(mTouchListener);
+        nameEditText.setOnTouchListener(touchListener);
+        breedEditText.setOnTouchListener(touchListener);
+        weightEditText.setOnTouchListener(touchListener);
+        genderSpinner.setOnTouchListener(touchListener);
 
         setupSpinner();
     }
