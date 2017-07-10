@@ -93,6 +93,7 @@ public class EditorActivity extends AppCompatActivity
         currentPetUri = getIntent().getData();
         if(currentPetUri == null){
             setTitle(getString(R.string.editor_activity_title_new_pet));
+            invalidateOptionsMenu();
         }else{
             setTitle(getString(R.string.editor_activity_title_edit_pet));
 
@@ -111,6 +112,17 @@ public class EditorActivity extends AppCompatActivity
         genderSpinner.setOnTouchListener(mTouchListener);
 
         setupSpinner();
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // If this is a new pet, hide the "Delete" menu item.
+        if (currentPetUri == null) {
+            MenuItem menuItem = menu.findItem(R.id.action_delete);
+            menuItem.setVisible(false);
+        }
+        return true;
     }
 
     @Override
